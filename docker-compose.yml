@@ -1,17 +1,16 @@
 services:
   postgres:
-    # Dùng image Postgres 16 đã được cộng đồng tích hợp sẵn pgvector
     image: pgvector/pgvector:pg16
     container_name: clinic_postgres
     restart: always
     environment:
-      POSTGRES_DB: clinic_rag # Tên database
-      POSTGRES_USER: postgres # Tên tài khoản quản trị
-      POSTGRES_PASSWORD: mysecretpassword # Mật khẩu kết nối
+      POSTGRES_DB: clinic_rag
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
     ports:
-      - "5433:5432" # Mở cổng 5432 để máy tính kết nối vào
+      - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data # Giữ lại dữ liệu khi tắt container
+      - pgdata:/var/lib/postgresql/data
 
 volumes:
   pgdata:

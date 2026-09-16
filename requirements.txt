@@ -1,0 +1,24 @@
+# Core
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+python-dotenv>=1.0.0
+
+# Database
+psycopg[binary]>=3.1.0
+pgvector>=0.2.5
+
+# Embeddings / ML
+sentence-transformers>=2.7.0
+
+# LLM
+groq>=0.9.0
+
+# Parsing
+docling>=2.0.0
+llama-parse>=0.4.0
+
+# UI
+streamlit>=1.35.0
+
+# CLI
+argparse  # stdlib, kept for documentation clarity

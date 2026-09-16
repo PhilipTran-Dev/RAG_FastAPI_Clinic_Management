@@ -2,6 +2,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from psycopg.types.json import Jsonb
+
 from app.core.config import PARSED_MARKDOWN_DIR, RAW_DOCS_DIR, Settings, get_settings
 from app.core.logging import get_logger
 from app.database.connection import get_connection
@@ -15,7 +17,7 @@ logger = get_logger(__name__)
 INSERT_SQL = """
     INSERT INTO clinic_knowledge_nodes
         (doc_id, specialty, target_audience, content, dense_embedding, metadata)
-    VALUES (%s, %s, %s, %s, %s, %s);
+    VALUES (%s, %s, %s, %s, %s, %s::jsonb);
 """
 
 
@@ -57,11 +59,12 @@ def ingest_markdown_file(
                 metadata = {"entities": entities.as_dict}
                 cur.execute(
                     INSERT_SQL,
-                    (doc_id, specialty, target_audience, content, embedding, metadata),
+                    (doc_id, specialty, target_audience, content, embedding, Jsonb(metadata)),
                 )
                 if idx % 25 == 0 or idx == total:
                     pct = idx / total * 100
                     logger.info("  -> [%5.1f%%] Ingested %d/%d chunks", pct, idx, total)
+        conn.commit()  # Persist all chunks to the database
 
     logger.info("Pipeline complete for %s (%d chunks, %d entities)",
                 doc_id, total, entities_count)

@@ -1,7 +1,7 @@
 """Table DDL, GIN indexes, and migration scripts for pgvector."""
 from typing import Iterable
 
-from app.core.config import Settings
+from app.core.config import Settings, get_settings
 from app.core.logging import get_logger
 from app.database.connection import get_cursor
 

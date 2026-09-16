@@ -76,18 +76,42 @@ def hybrid_search(
     )
     fts_results = _fts_results(query, top_k * 2, specialty)
 
-    dense_id_map = {r.id: i for i, r in enumerate(dense_results, 1)}
-    fts_id_map = {r[0]: i for i, r in enumerate(fts_results, 1)}
+    dense_id_map = {r.id: (i, r) for i, r in enumerate(dense_results, 1)}
+    fts_id_map = {r[0]: (i, r) for i, r in enumerate(fts_results, 1)}
+
+    all_ids = set(dense_id_map.keys()) | set(fts_id_map.keys())
 
     candidates: dict[int, HybridResult] = {}
-    for r in dense_results:
-        fts_rank = fts_id_map.get(r.id)
-        final_score = c * _reciprocal_rank(dense_id_map[r.id])
+    for doc_id in all_ids:
+        dense_entry = dense_id_map.get(doc_id)
+        fts_entry = fts_id_map.get(doc_id)
+
+        dense_rank = dense_entry[0] if dense_entry else None
+        fts_rank = fts_entry[0] if fts_entry else None
+
+        if dense_entry:
+            base_res = dense_entry[1]
+        else:
+            raw_fts = fts_entry[1]
+            base_res = SearchResult(
+                id=raw_fts[0],
+                doc_id=raw_fts[1],
+                specialty=raw_fts[2],
+                content=raw_fts[3],
+                distance=1.0,
+            )
+
+        final_score = 0.0
+        if dense_rank:
+            final_score += c * _reciprocal_rank(dense_rank)
         if fts_rank:
             final_score += (1 - c) * _reciprocal_rank(fts_rank)
-        candidates[r.id] = HybridResult(
-            result=r, dense_rank=dense_id_map[r.id],
-            fts_rank=fts_rank, final_score=final_score,
+
+        candidates[doc_id] = HybridResult(
+            result=base_res,
+            dense_rank=dense_rank or 999,
+            fts_rank=fts_rank,
+            final_score=final_score,
         )
 
     ranked = sorted(candidates.values(), key=lambda h: h.final_score, reverse=True)
